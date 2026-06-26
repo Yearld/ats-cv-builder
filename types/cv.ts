@@ -75,10 +75,20 @@ export interface Scores {
   remainingWeaknesses: string[];
 }
 
+export interface PassingChance {
+  percentage: number;
+  verdict: 'Strong' | 'Good' | 'Fair' | 'Weak';
+  summary: string;
+  keyStrengths: string[];
+  keyRisks: string[];
+  tips: string[];
+}
+
 export interface PipelineResult {
   resumeAnalysis: ResumeAnalysis;
   jobAnalysis: JobAnalysis;
   gapAnalysis: GapAnalysis;
   optimizedResume: OptimizedResume;
   scores: Scores;
+  passingChance: PassingChance;
 }

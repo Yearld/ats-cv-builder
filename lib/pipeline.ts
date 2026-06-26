@@ -5,6 +5,7 @@ import type {
   GapAnalysis,
   OptimizedResume,
   Scores,
+  PassingChance,
   PipelineResult,
 } from '@/types/cv';
 
@@ -12,7 +13,6 @@ export async function runPipeline(
   resumeText: string,
   jobDescription: string
 ): Promise<PipelineResult> {
-  // Step 1: Resume analysis
   const resumeAnalysisRaw = await callLLM(`
 Analyze this resume and return JSON with this exact schema:
 {
@@ -35,7 +35,6 @@ ${resumeText}
 `);
   const resumeAnalysis = parseJSON<ResumeAnalysis>(resumeAnalysisRaw);
 
-  // Step 2: Job analysis
   const jobAnalysisRaw = await callLLM(`
 Analyze this job description and return JSON with this exact schema:
 {
@@ -54,7 +53,6 @@ ${jobDescription}
 `);
   const jobAnalysis = parseJSON<JobAnalysis>(jobAnalysisRaw);
 
-  // Step 3: Gap analysis
   const gapAnalysisRaw = await callLLM(`
 Compare this resume to the job description and return JSON with this exact schema:
 {
@@ -73,7 +71,6 @@ ${jobDescription}
 `);
   const gapAnalysis = parseJSON<GapAnalysis>(gapAnalysisRaw);
 
-  // Step 4 & 5: Rewrite and ATS-optimize
   const optimizedRaw = await callLLM(`
 Rewrite and ATS-optimize this resume for the target job. Return JSON with this exact schema:
 {
@@ -119,7 +116,6 @@ ${jobDescription}
 `);
   const optimizedResume = parseJSON<OptimizedResume>(optimizedRaw);
 
-  // Step 6: Final scores
   const scoresRaw = await callLLM(`
 Score this optimized resume against the job description and return JSON with this exact schema:
 {
@@ -140,5 +136,36 @@ ${jobDescription}
 `);
   const scores = parseJSON<Scores>(scoresRaw);
 
-  return { resumeAnalysis, jobAnalysis, gapAnalysis, optimizedResume, scores };
+  const passingChanceRaw = await callLLM(`
+Based on this resume and job description, estimate the candidate's realistic chance of passing the FIRST screening stage (ATS + initial recruiter review). Be honest and realistic.
+
+Return JSON with this exact schema:
+{
+  "percentage": <0-100>,
+  "verdict": <"Strong" | "Good" | "Fair" | "Weak">,
+  "summary": "2-3 sentence honest assessment of first-stage chances",
+  "keyStrengths": ["top 2-3 things working in their favor"],
+  "keyRisks": ["top 2-3 things that could get them screened out"],
+  "tips": ["1-2 actionable tips to improve chances further"]
+}
+
+Rules:
+- verdict "Strong" = 75-100%, "Good" = 50-74%, "Fair" = 25-49%, "Weak" = 0-24%
+- Be realistic. Consider ATS keyword match, experience level match, required skills coverage.
+
+OPTIMIZED RESUME:
+${optimizedResume.professionalSummary}
+Experience: ${optimizedResume.experience.map(e => `${e.title} at ${e.company}`).join(', ')}
+Skills: ${optimizedResume.skills.flatMap(s => s.skills).join(', ')}
+
+JOB REQUIREMENTS:
+${jobDescription}
+
+GAP ANALYSIS:
+Strong matches: ${gapAnalysis.strongMatches.join(', ')}
+Missing: ${gapAnalysis.missing.join(', ')}
+`);
+  const passingChance = parseJSON<PassingChance>(passingChanceRaw);
+
+  return { resumeAnalysis, jobAnalysis, gapAnalysis, optimizedResume, scores, passingChance };
 }
