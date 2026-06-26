@@ -134,7 +134,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               {[
                 { label: '1 Optimization', price: '$1', optimizations: 1 },
                 { label: '5 Optimizations', price: '$4', optimizations: 5, badge: 'Save 20%' },
-                { label: '10 Optimizations', price: '$8', optimizations: 10, badge: 'Save 20%' },
+                { label: '10 Optimizations', price: '$7', optimizations: 10, badge: 'Save 30%' },
               ].map(pkg => (
                 <div key={pkg.label} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl mb-2">
                   <div>

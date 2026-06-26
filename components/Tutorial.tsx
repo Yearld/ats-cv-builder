@@ -4,29 +4,29 @@ import { useState } from 'react';
 
 const STEPS = [
   {
+    icon: '🤖',
+    title: 'What is ATS?',
+    desc: 'ATS (Applicant Tracking System) is software used by 99% of large companies to automatically scan and filter resumes before a recruiter ever sees them. If your resume doesn\'t match the job keywords, it gets rejected instantly — no matter how qualified you are. This app helps you beat that filter.',
+  },
+  {
     icon: '📄',
     title: 'Upload Your Resume',
-    desc: 'Upload your current resume in PDF or DOCX format, or paste the text directly. We support any resume format.',
+    desc: 'Upload your current resume in PDF or DOCX format, or paste the text directly. Our AI reads your real experience — we never invent or fabricate anything.',
   },
   {
     icon: '💼',
-    title: 'Paste the Job Description',
-    desc: 'Copy the full job posting — requirements, responsibilities, and skills. The more detail, the better the optimization.',
-  },
-  {
-    icon: '🤖',
-    title: 'AI Optimization',
-    desc: 'Our AI analyzes your resume against the job, identifies gaps, rewrites bullet points, and integrates ATS keywords — using only your real experience.',
+    title: 'Paste the Full Job Description',
+    desc: 'Copy the entire job posting — requirements, responsibilities, skills, and nice-to-haves. The more detail you provide, the better the AI can tailor your resume to pass that specific ATS.',
   },
   {
     icon: '📊',
     title: 'Review Your Results',
-    desc: 'See your ATS scores, gap analysis, pass-through chance, and the fully optimized resume across 5 tabs.',
+    desc: 'See your first-stage screening chance, ATS keyword match, gap analysis, and your fully rewritten resume — all across 6 tabs. Edit any field before downloading.',
   },
   {
     icon: '⬇️',
     title: 'Download & Apply',
-    desc: 'Download your optimized resume as PDF or DOCX, ready to submit. Each optimization is tailored to that specific job.',
+    desc: 'Download your ATS-optimized resume as PDF or DOCX and submit with confidence. Repeat for every job — each optimization is tailored to that specific position.',
   },
 ];
 
