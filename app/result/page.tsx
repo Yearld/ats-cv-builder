@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { PipelineResult, OptimizedResume, ExperienceEntry, SkillGroup } from '@/types/cv';
 import Sidebar from '@/components/Sidebar';
+import { t, type Lang } from '@/lib/i18n';
 
 type Tab = 'chance' | 'analysis' | 'ats' | 'gap' | 'resume' | 'scores';
 
@@ -14,6 +15,7 @@ export default function ResultPage() {
   const [editableResume, setEditableResume] = useState<OptimizedResume | null>(null);
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lang, setLang] = useState<Lang>('en');
 
   useEffect(() => {
     const stored = sessionStorage.getItem('pipelineResult');
@@ -21,7 +23,11 @@ export default function ResultPage() {
     const parsed: PipelineResult = JSON.parse(stored);
     setResult(parsed);
     setEditableResume(JSON.parse(JSON.stringify(parsed.optimizedResume)));
+    const storedLang = (sessionStorage.getItem('lang') || localStorage.getItem('lang') || 'en') as Lang;
+    if (['en', 'es', 'fr', 'ru'].includes(storedLang)) setLang(storedLang);
   }, [router]);
+
+  const tr = t[lang];
 
   async function handleExport(format: 'pdf' | 'docx') {
     if (!editableResume) return;
@@ -64,12 +70,12 @@ export default function ResultPage() {
   const vc = verdictConfig[passingChance?.verdict ?? 'Fair'];
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'chance', label: '🎯 Chances' },
-    { id: 'analysis', label: 'Analysis' },
-    { id: 'ats', label: 'ATS' },
-    { id: 'gap', label: 'Gap Analysis' },
-    { id: 'resume', label: 'Optimized Resume' },
-    { id: 'scores', label: 'Scores' },
+    { id: 'chance',   label: tr.tabChances },
+    { id: 'analysis', label: tr.tabAnalysis },
+    { id: 'ats',      label: tr.tabATS },
+    { id: 'gap',      label: tr.tabGap },
+    { id: 'resume',   label: tr.tabResume },
+    { id: 'scores',   label: tr.tabScores },
   ];
 
   return (
@@ -78,16 +84,14 @@ export default function ResultPage() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="w-9 h-9 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center hover:bg-gray-50 flex-shrink-0"
-            >
+            <button onClick={() => setSidebarOpen(true)}
+              className="w-9 h-9 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center hover:bg-gray-50 flex-shrink-0">
               <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-gray-900">Resume Optimized</h1>
+              <h1 className="text-xl font-bold text-gray-900">{tr.resumeOptimized}</h1>
               <p className="text-gray-500 text-xs truncate">
                 {jobAnalysis.jobTitle}{jobAnalysis.industry && ` · ${jobAnalysis.industry}`}{jobAnalysis.seniorityLevel && ` · ${jobAnalysis.seniorityLevel}`}
               </p>
@@ -95,27 +99,27 @@ export default function ResultPage() {
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => handleExport('pdf')} disabled={!!exporting}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-medium px-3 py-2 rounded-lg">
-                {exporting === 'pdf' ? '…' : 'PDF'}
+                {exporting === 'pdf' ? tr.generating : 'PDF'}
               </button>
               <button onClick={() => handleExport('docx')} disabled={!!exporting}
                 className="bg-gray-800 hover:bg-gray-900 disabled:bg-gray-400 text-white text-xs font-medium px-3 py-2 rounded-lg">
-                {exporting === 'docx' ? '…' : 'DOCX'}
+                {exporting === 'docx' ? tr.generating : 'DOCX'}
               </button>
               <button onClick={() => router.push('/')}
                 className="border border-gray-300 text-gray-600 hover:bg-gray-100 text-xs font-medium px-3 py-2 rounded-lg">
-                New
+                {tr.newResume}
               </button>
             </div>
           </div>
 
           {/* Tabs */}
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)}
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-max py-2 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === t.id ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                  activeTab === tab.id ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
                 }`}>
-                {t.label}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -125,9 +129,7 @@ export default function ResultPage() {
             {/* Chances tab */}
             {activeTab === 'chance' && passingChance && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">First-Stage Screening Chance</h2>
-
-                {/* Main score card */}
+                <h2 className="text-lg font-semibold mb-4">{tr.chancesTitle}</h2>
                 <div className={`rounded-2xl border ${vc.bg} ${vc.border} p-6 mb-6 text-center`}>
                   <div className="text-5xl mb-2">{vc.emoji}</div>
                   <div className={`text-6xl font-bold ${vc.color} mb-1`}>{passingChance.percentage}%</div>
@@ -137,14 +139,12 @@ export default function ResultPage() {
                   </div>
                   <p className="text-sm text-gray-700 leading-relaxed max-w-md mx-auto">{passingChance.summary}</p>
                 </div>
-
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
-                  <Section title="Key Strengths" items={passingChance.keyStrengths} color="green" />
-                  <Section title="Key Risks" items={passingChance.keyRisks} color="red" />
+                  <Section title={tr.keyStrengths} items={passingChance.keyStrengths} color="green" />
+                  <Section title={tr.keyRisks} items={passingChance.keyRisks} color="red" />
                 </div>
-
                 {passingChance.tips.length > 0 && (
-                  <Section title="💡 Tips to Improve Your Chances" items={passingChance.tips} color="blue" />
+                  <Section title={tr.tipsTitle} items={passingChance.tips} color="blue" />
                 )}
               </div>
             )}
@@ -152,7 +152,7 @@ export default function ResultPage() {
             {/* Analysis tab */}
             {activeTab === 'analysis' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">Resume Analysis</h2>
+                <h2 className="text-lg font-semibold mb-4">{tr.tabAnalysis}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                   {[
                     ['Structure', resumeAnalysis.structure],
@@ -186,7 +186,7 @@ export default function ResultPage() {
             {/* ATS tab */}
             {activeTab === 'ats' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">ATS Keywords & Job Requirements</h2>
+                <h2 className="text-lg font-semibold mb-4">{tr.tabATS}</h2>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Required Skills</h3>
@@ -221,7 +221,7 @@ export default function ResultPage() {
             {/* Gap analysis tab */}
             {activeTab === 'gap' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">Gap Analysis</h2>
+                <h2 className="text-lg font-semibold mb-4">{tr.tabGap}</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <Section title="Strong Matches" items={gapAnalysis.strongMatches} color="green" />
                   <Section title="Partial Matches" items={gapAnalysis.partialMatches} color="yellow" />
@@ -239,7 +239,7 @@ export default function ResultPage() {
             {/* Optimized resume tab */}
             {activeTab === 'resume' && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">Optimized Resume</h2>
+                <h2 className="text-lg font-semibold mb-1">{tr.tabResume}</h2>
                 <p className="text-xs text-gray-400 mb-4">You can edit any field below before downloading.</p>
                 {editableResume.missingInfo && editableResume.missingInfo.length > 0 && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
@@ -259,7 +259,7 @@ export default function ResultPage() {
             {/* Scores tab */}
             {activeTab === 'scores' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">Final Scores</h2>
+                <h2 className="text-lg font-semibold mb-4">{tr.tabScores}</h2>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {[
                     ['ATS Compatibility', scores.atsCompatibility],
@@ -289,7 +289,7 @@ export default function ResultPage() {
         </div>
       </main>
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} lang={lang} />
     </>
   );
 }
@@ -306,7 +306,7 @@ function Section({ title, items, color }: { title: string; items: string[]; colo
   return (
     <div className={`rounded-xl border p-4 ${colors[color] ?? colors.gray}`}>
       <p className="text-xs font-semibold uppercase tracking-wide mb-2">{title}</p>
-      {items.length === 0 ? <p className="text-xs opacity-60">None</p> : (
+      {items.length === 0 ? <p className="text-xs opacity-60">—</p> : (
         <ul className="space-y-1">
           {items.map((item, i) => (
             <li key={i} className="text-sm flex gap-2"><span className="opacity-40 mt-0.5">•</span>{item}</li>

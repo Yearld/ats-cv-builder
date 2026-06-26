@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,14 +11,13 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders });
 }
 
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400, headers: corsHeaders });
-    }
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400, headers: corsHeaders });
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -36,9 +36,25 @@ export async function POST(req: NextRequest) {
       const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
+    } else if (IMAGE_TYPES.includes(mimeType) || /\.(png|jpe?g|webp)$/i.test(file.name)) {
+      const client = new Anthropic({ apiKey: process.env.LLM_API_KEY });
+      const base64 = buffer.toString('base64');
+      const mediaType = (IMAGE_TYPES.includes(mimeType) ? mimeType : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/webp';
+      const response = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: 'Extract all text and professional information from this document image. Include certifications, dates, issuing organizations, skills, and any other relevant professional details. Return plain text only.' },
+          ],
+        }],
+      });
+      text = response.content[0].type === 'text' ? response.content[0].text : '';
     } else {
       return NextResponse.json(
-        { error: 'Unsupported file type. Please upload PDF or DOCX.' },
+        { error: 'Unsupported file type. Please upload PDF, DOCX, PNG, or JPG.' },
         { status: 400, headers: corsHeaders }
       );
     }

@@ -13,16 +13,14 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { resumeText, jobDescription } = await req.json();
-
+    const { resumeText, jobDescription, language, additionalContext } = await req.json();
     if (!resumeText || !jobDescription) {
       return NextResponse.json(
         { error: 'resumeText and jobDescription are required' },
         { status: 400, headers: corsHeaders }
       );
     }
-
-    const result = await runPipeline(resumeText, jobDescription);
+    const result = await runPipeline(resumeText, jobDescription, language ?? 'en', additionalContext ?? '');
     return NextResponse.json(result, { headers: corsHeaders });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Pipeline error';
