@@ -19,17 +19,18 @@ export default function HomePage() {
     setFileName(file.name);
     setError('');
 
-    const fd = new FormData();
-    fd.append('file', file);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
 
-    const res = await fetch('/api/parse', { method: 'POST', body: fd });
-    const data = await res.json();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/parse`, { method: 'POST', body: fd });
+      const data = await res.json();
 
-    if (data.error) {
-      setError(data.error);
-      return;
+      if (data.error) { setError(data.error); return; }
+      setResumeText(data.text);
+    } catch (err) {
+      setError(`Failed to parse file: ${err instanceof Error ? err.message : 'Network error'}`);
     }
-    setResumeText(data.text);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -41,7 +42,7 @@ export default function HomePage() {
     setError('');
 
     try {
-      const res = await fetch('/api/optimize', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/optimize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDescription }),

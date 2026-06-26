@@ -25,7 +25,7 @@ export default function ResultPage() {
     if (!editableResume) return;
     setExporting(format);
     try {
-      const res = await fetch('/api/export', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resume: editableResume, format }),

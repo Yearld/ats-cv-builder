@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: 'No file provided' }, { status: 400, headers: corsHeaders });
     }
 
     const bytes = await file.arrayBuffer();
@@ -21,8 +31,7 @@ export async function POST(req: NextRequest) {
       const data = await pdfParse(buffer);
       text = data.text;
     } else if (
-      mimeType ===
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
       file.name.endsWith('.docx')
     ) {
       const mammoth = await import('mammoth');
@@ -31,13 +40,13 @@ export async function POST(req: NextRequest) {
     } else {
       return NextResponse.json(
         { error: 'Unsupported file type. Please upload PDF or DOCX.' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    return NextResponse.json({ text: text.trim() });
+    return NextResponse.json({ text: text.trim() }, { headers: corsHeaders });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Parse error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500, headers: corsHeaders });
   }
 }
