@@ -26,8 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (mimeType === 'application/pdf' || file.name.endsWith('.pdf')) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfParseModule = await import('pdf-parse') as any;
-      const pdfParse = pdfParseModule.default ?? pdfParseModule;
+      const pdfParse = (await import('pdf-parse') as any).default;
       const data = await pdfParse(buffer);
       text = data.text;
     } else if (
