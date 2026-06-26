@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Tutorial from './Tutorial';
 import { t, type Lang } from '@/lib/i18n';
 
 const LINKEDIN_URL = 'https://linkedin.com/company/ats-cv-builder';
 
-interface SidebarProps { open: boolean; onClose: () => void; lang: Lang; }
+interface SidebarProps { open: boolean; onClose: () => void; lang: Lang; onShowTutorial?: () => void; }
 interface UsageStats { total: number; used: number; }
 
 function getUsage(): UsageStats {
@@ -21,10 +20,9 @@ const PACKAGES = [
   { label: '10 Optimizations', price: '$14', badge: 'Save 30%' },
 ];
 
-export default function Sidebar({ open, onClose, lang }: SidebarProps) {
+export default function Sidebar({ open, onClose, lang, onShowTutorial }: SidebarProps) {
   const [section, setSection] = useState<'menu' | 'tutorial' | 'about' | 'credits'>('menu');
   const [usage, setUsage] = useState<UsageStats>({ total: 0, used: 0 });
-  const [showTutorialPopup, setShowTutorialPopup] = useState(false);
   const tr = t[lang];
 
   useEffect(() => {
@@ -70,7 +68,10 @@ export default function Sidebar({ open, onClose, lang }: SidebarProps) {
                 { id: 'credits', icon: '💳', label: tr.myOptimizations, sub: `${remaining} ${tr.optimizationsRemaining}` },
                 { id: 'about', icon: 'ℹ️', label: tr.about, sub: 'App info & contacts' },
               ] as const).map(item => (
-                <button key={item.id} onClick={() => setSection(item.id)}
+                <button key={item.id} onClick={() => {
+                  if (item.id === 'tutorial') { onClose(); onShowTutorial?.(); }
+                  else setSection(item.id);
+                }}
                   className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
                   <span className="text-xl">{item.icon}</span>
                   <div>
@@ -82,18 +83,6 @@ export default function Sidebar({ open, onClose, lang }: SidebarProps) {
                   </svg>
                 </button>
               ))}
-            </div>
-          )}
-
-          {section === 'tutorial' && (
-            <div>
-              <h2 className="text-base font-bold text-gray-900 mb-1">{tr.howToUse}</h2>
-              <p className="text-xs text-gray-400 mb-4">Step-by-step guide</p>
-              <Tutorial asPanel onClose={() => {}} lang={lang} />
-              <button onClick={() => { onClose(); setShowTutorialPopup(true); }}
-                className="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl">
-                {tr.startTutorial}
-              </button>
             </div>
           )}
 
@@ -161,7 +150,6 @@ export default function Sidebar({ open, onClose, lang }: SidebarProps) {
         </div>
       </div>
 
-      {showTutorialPopup && <Tutorial onClose={() => setShowTutorialPopup(false)} lang={lang} />}
     </>
   );
 }

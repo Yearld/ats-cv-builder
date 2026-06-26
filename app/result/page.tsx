@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { PipelineResult, OptimizedResume, ExperienceEntry, SkillGroup } from '@/types/cv';
 import Sidebar from '@/components/Sidebar';
+import Tutorial from '@/components/Tutorial';
 import { t, type Lang } from '@/lib/i18n';
 
 type Tab = 'chance' | 'analysis' | 'ats' | 'gap' | 'resume' | 'scores';
@@ -15,6 +16,7 @@ export default function ResultPage() {
   const [editableResume, setEditableResume] = useState<OptimizedResume | null>(null);
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [lang, setLang] = useState<Lang>('en');
 
   useEffect(() => {
@@ -289,7 +291,8 @@ export default function ResultPage() {
         </div>
       </main>
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} lang={lang} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} lang={lang} onShowTutorial={() => setShowTutorial(true)} />
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} lang={lang} />}
     </>
   );
 }
